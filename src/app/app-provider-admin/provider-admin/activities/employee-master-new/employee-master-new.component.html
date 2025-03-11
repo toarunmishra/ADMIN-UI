@@ -1,0 +1,1180 @@
+<div class="container-fluid" *ngIf="employeeMasterUpload == false">
+  <div class="row" *ngIf="tableMode">
+    <div class="col-xs-12 col-sm-12">
+      <h4>Employee Master</h4>
+    </div>
+    <div>
+      <button
+        mat-raised-button
+        color="primary"
+        class="pull-right mat_blue"
+        (click)="uploadMaster()"
+      >
+        Upload
+      </button>
+      
+      <button
+        mat-raised-button
+        color="primary"
+        class="pull-right mat_blue ml-10"
+        style="margin-right: 10px;"
+        (click)="downloadMaster()"
+      >
+        Download
+      </button>
+    </div>
+  </div>
+  <div *ngIf="downloadMemberExcelFile">
+
+    {{ downloadMemberExcelFile }}
+    
+  </div>
+
+  <div style="text-align: end" *ngIf="searchResult.length !== 0 && tableMode">
+    <mat-form-field id="filterbox">
+      <input
+        matInput
+        placeholder="In-Table Search"
+        [(ngModel)]="searchTerm"
+        #filterTerm
+        (keyup)="filterComponentList(filterTerm.value)"
+      />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+  </div>
+  <div class="row" *ngIf="tableMode">
+    <div class="col-xs-12 col-sm-12">
+      <div class="table-responsive">
+        <table
+          mat-table
+          [dataSource]="filteredsearchResult"
+          class="table table-striped table-hover"
+        >
+          <ng-container matColumnDef="activePage">
+            <th mat-header-cell *matHeaderCellDef>S.No.</th>
+            <td mat-cell *matCellDef="let element; let i = index">
+              {{ i + 1 }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="Title">
+            <th mat-header-cell *matHeaderCellDef>Title</th>
+            <td mat-cell *matCellDef="let element">{{ element.titleName }}</td>
+          </ng-container>
+          <ng-container matColumnDef="Username">
+            <th mat-header-cell *matHeaderCellDef>User name</th>
+            <td mat-cell *matCellDef="let element">{{ element.userName }}</td>
+          </ng-container>
+          <ng-container matColumnDef="EmergencyContact">
+            <th mat-header-cell *matHeaderCellDef>Emergency Contact&nbsp;No</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.emergencyContactNo }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="EmailID">
+            <th mat-header-cell *matHeaderCellDef>Email ID</th>
+            <td mat-cell *matCellDef="let element">{{ element.emailID }}</td>
+          </ng-container>
+          <ng-container matColumnDef="DOJ">
+            <th mat-header-cell *matHeaderCellDef>DOJ</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.dOJ ? (element.dOJ | date: "dd/MM/yyyy") : "NA" }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="Designation">
+            <th mat-header-cell *matHeaderCellDef>Designation</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.designationName }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="edit">
+            <th mat-header-cell *matHeaderCellDef>Edit</th>
+            <td mat-cell *matCellDef="let element">
+              <button
+                mat-icon-button
+                matTooltip="Click to Edit"
+                class="iconbutton"
+                color="primary"
+                style="border: unset; background-color: unset"
+                (click)="editUserDetails(element)"
+                *ngIf="!element.deleted"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
+            <td mat-cell *matCellDef="let element">
+              <button
+                *ngIf="element.deleted === true"
+                mat-raised-button
+                color="accent"
+                class="mat_green"
+                (click)="activateDeactivate(element.userID, false)"
+              >
+                Activate
+              </button>
+              <button
+                *ngIf="element.deleted === false"
+                mat-raised-button
+                class="mat_blue"
+                color="primary"
+                (click)="activateDeactivate(element.userID, true)"
+              >
+                Deactivate
+              </button>
+            </td>
+          </ng-container>
+        </table>
+        <div
+          class="pull-center"
+          style="margin-top: 35px; text-align: center"
+          *ngIf="filteredsearchResult.data.length === 0"
+        >
+          <strong>No Records Found</strong>
+        </div>
+        <mat-paginator
+          [hidden]="filteredsearchResult.data.length === 0"
+          [pageSizeOptions]="[5, 10, 25]"
+          [pageSize]="5"
+          showFirstLastButtons
+        ></mat-paginator>
+        <div>
+          <button
+            mat-raised-button
+            color="primary"
+            class="pull-right mat_blue"
+            (click)="showForm()"
+          >
+            Create New User
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    [hidden]="!formMode"
+    class="create-user-form"
+    style="margin: 35px 10px 0px 10px"
+  >
+    <mat-accordion>
+      <mat-expansion-panel (opened)="(true)">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <h4
+              class="f-s-n-b"
+              style="margin: 15px 0px 10px 0px"
+              *ngIf="!editMode"
+            >
+              User Details
+            </h4>
+            <h4
+              class="f-s-n-b"
+              style="margin: 15px 0px 10px 0px"
+              *ngIf="editMode"
+            >
+              Edit User Details
+            </h4>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="row m-l-0" (mouseup)="hidePWD()">
+          <form #userCreationForm="ngForm" autocomplete="off">
+            <div class="col-12 row">
+              <div class="col-3 m-t-20">
+                <mat-form-field [style.width]="'100%'">
+                  <mat-label>Title</mat-label>
+                  <mat-select
+                    class="width100"
+                    [(ngModel)]="titleID"
+                    name="title_Id"
+                    (selectionChange)="setGenderOnCondition()"
+                    required
+                  >
+                    <mat-option
+                      *ngFor="let item of titles"
+                      [value]="item.titleID"
+                    >
+                      {{ item.titleName }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+              <div class="col-3 m-t-20">
+                <mat-form-field class="width100" appMyNameWithCopyPaste>
+                  <mat-label>First Name</mat-label>
+                  <input
+                    type="text"
+                    matInput
+                    [(ngModel)]="firstname"
+                    name="user_firstname"
+                    minlength="1"
+                    maxlength="50"
+                    #fname="ngModel"
+                    required
+                  />
+                  <mat-hint *ngIf="fname.touched">
+                    <span class="errorText" [hidden]="!fname.errors"
+                      >Enter characters only</span
+                    >
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+              <div class="col-3 m-t-20">
+                <mat-form-field class="width100" appMyNameWithCopyPaste>
+                  <mat-label>Middle Name</mat-label>
+                  <input
+                    type="text"
+                    matInput
+                    [(ngModel)]="middlename"
+                    name="user_middlename"
+                    minlength="1"
+                    maxlength="50"
+                    #mName="ngModel"
+                  />
+                  <mat-hint *ngIf="mName.touched">
+                    <span class="errorText" [hidden]="!mName.errors"
+                      >Enter characters only</span
+                    >
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+              <div class="col-3 m-t-20">
+                <mat-form-field class="width100" appMyNameWithCopyPaste>
+                  <mat-label>Last Name</mat-label>
+                  <input
+                    type="text"
+                    matInput
+                    [(ngModel)]="lastname"
+                    name="user_lastname"
+                    minlength="1"
+                    maxlength="50"
+                    #lname="ngModel"
+                    required
+                  />
+                  <mat-hint>
+                    <span
+                      class="errorText"
+                      *ngIf="lname.errors && lname.touched"
+                      >Enter characters only</span
+                    >
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="col-12 row">
+              <div class="col-3 m-t-20">
+                <mat-form-field [style.width]="'100%'">
+                  <mat-label>Gender</mat-label>
+                  <mat-select
+                    class="width100"
+                    [(ngModel)]="genderID"
+                    name="gender_Id"
+                    required
+                  >
+                    <mat-option
+                      *ngFor="let item of genders"
+                      [value]="item.genderID"
+                    >
+                      {{ item.genderName }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+              <div class="col-3 m-t-20">
+                <mat-form-field class="width100" appMyMobileNumberWithCopyPaste>
+                  <mat-label>Contact No.</mat-label>
+                  <input
+                    matInput
+                    [(ngModel)]="contactNo"
+                    name="primaryMobileNo"
+                    minlength="10"
+                    maxlength="10"
+                    #mobileNo="ngModel"
+                    [pattern]="mobileNoPattern"
+                    required
+                  />
+                  <mat-hint>
+                    <span
+                      class="errorText"
+                      [hidden]="!mobileNo.hasError('pattern')"
+                      >Required 10 digit valid mobile number</span
+                    >
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+              <div class="col-3 m-t-20">
+                <mat-form-field [style.width]="'100%'">
+                  <mat-label>Designation</mat-label>
+                  <mat-select
+                    class="width100"
+                    [(ngModel)]="designationID"
+                    name="designation"
+                    (selectionChange)="enableHPID()"
+                    required
+                  >
+                    <mat-option
+                      *ngFor="let item of designations"
+                      [value]="item.designationID"
+                      >{{ item.designationName }}</mat-option
+                    >
+                    <mat-option
+                      *ngFor="let item of designations"
+                      [value]="item.designationID"
+                      >{{ item.designationName }}</mat-option
+                    >
+                  </mat-select>
+                </mat-form-field>
+              </div>
+              <div class="col-3 m-t-20" *ngIf="enablehealthProfessionalID">
+                <mat-form-field class="width100">
+                  <mat-label>Health Professional ID</mat-label>
+                  <input
+                    matInput
+                    [(ngModel)]="healthProfessionalID"
+                    name="healthProfessionalID"
+                    [pattern]="healthIDPattern"
+                    minlength="4"
+                    maxlength="30"
+                    #HPID="ngModel"
+                    (blur)="checkHealthProfessionalID()"
+                    (keyup)="validateHealthProfessionalId()"
+                  />
+                  <strong *ngIf="!disableGenerateOTP" matSuffix
+                    >&#64;.sbx</strong
+                  >
+                  <mat-hint *ngIf="HPID.touched">
+                    <span
+                      class="errorText"
+                      [hidden]="!HPID.errors && !errorValidationMsgForHPId"
+                      >Enter valid Health professional ID. It should contain
+                      minimum 4 characters, begin with aplhabets and special
+                      chracters are not allowed except (.)</span
+                    >
+                    <span
+                      class="error_text"
+                      *ngIf="isHPIdExist && !HPID.errors"
+                      >{{ errorMessageForHPID }}</span
+                    >
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="col-12 row">
+              <div class="col-3 m-t-20">
+                <mat-form-field class="width100" appMyMobileNumberWithCopyPaste>
+                  <mat-label>Emergency Contact No.</mat-label>
+                  <input
+                    matInput
+                    [(ngModel)]="emergency_contactNo"
+                    name="emergencyContactNo"
+                    minlength="10"
+                    maxlength="10"
+                    #emergencyMobileNo="ngModel"
+                    [pattern]="mobileNoPattern"
+                    required
+                  />
+                  <mat-hint>
+                    <span
+                      class="errorText"
+                      [hidden]="!emergencyMobileNo.hasError('pattern')"
+                      >Required 10 digit valid mobile number</span
+                    >
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+              <div class="col-3 m-t-10">
+                <mat-form-field class="width100">
+                  <mat-label>Date of Birth</mat-label>
+                  <input
+                    matInput
+                    [matDatepicker]="picker"
+                    [(ngModel)]="dob"
+                    name="user_dob"
+                    (keydown)="preventTyping($event)"
+                    required
+                    (dateChange)="calculateAge(dob)"
+                  />
+                  <mat-datepicker-toggle
+                    matSuffix
+                    [for]="picker"
+                  ></mat-datepicker-toggle>
+                  <mat-datepicker #picker></mat-datepicker>
+                </mat-form-field>
+              </div>
+              <div class="col-3 m-t-15">
+                <mat-form-field [style.width]="'100%'">
+                  <mat-label>Age</mat-label>
+                  <input
+                    matInput
+                    [(ngModel)]="age"
+                    name="user_age"
+                    minlength="1"
+                    maxlength="2"
+                    [disabled]="disabled"
+                    #userAge="ngModel"
+                  />
+                  <mat-error
+                    *ngIf="
+                      userAge.invalid && (userAge.dirty || userAge.touched)
+                    "
+                  >
+                    Age is required
+                  </mat-error>
+                </mat-form-field>
+              </div>
+              <div class="col-3 m-t-15">
+                <mat-form-field class="width100">
+                  <mat-label>Email</mat-label>
+                  <input
+                    matInput
+                    [(ngModel)]="emailID"
+                    name="primaryEmail"
+                    #validEmail="ngModel"
+                    ngModel
+                    [pattern]="emailPattern"
+                    required
+                  />
+                  <mat-hint>
+                    <span
+                      class="errorText"
+                      [hidden]="!validEmail.hasError('pattern')"
+                      >Valid Email ID is required</span
+                    >
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="col-12 row">
+              <div
+                class="clearfix visible-lg"
+                *ngIf="enablehealthProfessionalID"
+              ></div>
+              <div class="col-3 m-t-20">
+                <mat-form-field [style.width]="'100%'">
+                  <mat-label>Marital Status</mat-label>
+                  <mat-select
+                    class="width100"
+                    [(ngModel)]="maritalStatusID"
+                    name="marital_status"
+                  >
+                    <mat-option
+                      *ngFor="let item of maritalStatuses.m_maritalStatuses"
+                      [value]="item.maritalStatusID"
+                      >{{ item.status }}</mat-option
+                    >
+                  </mat-select>
+                </mat-form-field>
+              </div>
+              <div class="clearfix" *ngIf="!enablehealthProfessionalID"></div>
+              <div class="col-3 m-t-20">
+                <mat-form-field class="width100" appMyMobileNumberWithCopyPaste>
+                  <mat-label>Aadhar No.</mat-label>
+                  <input
+                    matInput
+                    ngModel
+                    name="aadhar_number"
+                    [(ngModel)]="aadharNumber"
+                    minlength="12"
+                    maxlength="12"
+                    (keyup)="checkAadhar()"
+                    #number="ngModel"
+                  />
+                  <mat-hint *ngIf="number.touched">
+                    <span class="error_text" [hidden]="!number.errors"
+                      >Required 12 digit aadhar number</span
+                    >
+                    <span
+                      class="error_text"
+                      *ngIf="isExistAadhar && !number.errors"
+                      >{{ errorMessageForAadhar }}</span
+                    >
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="col-12 row">
+              <div class="col-3 m-t-20">
+                <mat-form-field class="width100" appPanWithCopyPaste>
+                  <mat-label>PAN Card No.</mat-label>
+                  <input
+                    matInput
+                    (keypress)="omit_special_char($event)"
+                    ngModel
+                    name="pan_number"
+                    [(ngModel)]="panNumber"
+                    minlength="10"
+                    maxlength="10"
+                    #panNo="ngModel"
+                    (keyup)="checkPan()"
+                  />
+                  <mat-hint *ngIf="panNo.touched">
+                    <span class="error_text" [hidden]="!panNo.errors"
+                      >Required 10 digit Pan number EX: alphanumeric</span
+                    >
+                    <span
+                      class="error_text"
+                      *ngIf="isExistPan && !panNo.errors"
+                      >{{ errorMessageForPan }}</span
+                    >
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+              <div class="col-3 m-t-20">
+                <mat-form-field [style.width]="'100%'">
+                  <mat-label>Qualification</mat-label>
+                  <mat-select
+                    class="width100"
+                    [(ngModel)]="qualificationID"
+                    name="edu_qualification"
+                    required
+                  >
+                    <mat-option
+                      *ngFor="let item of eduQualifications"
+                      [value]="item.qualificationID"
+                      >{{ item.name }}</mat-option
+                    >
+                    <mat-option
+                      *ngFor="let item of eduQualifications"
+                      [value]="item.qualificationID"
+                      >{{ item.name }}</mat-option
+                    >
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+            <div
+              class="col-xs-12 col-sm-12 col-md-12 col-lg-12 m-t-10"
+              *ngIf="!editMode"
+            >
+              <h4>
+                <strong>Create User Name & Password</strong>
+              </h4>
+            </div>
+
+            <div
+              class="col-xs-6 col-sm-12 col-md-12 col-lg-12 m-t-20"
+              *ngIf="!editMode"
+            >
+              <span class="f-s-n-b"><strong>User Type</strong><em>*</em></span>
+              <mat-radio-group
+                [(ngModel)]="userType"
+                name="userType"
+                (change)="changeUserType(userType)"
+              >
+                <mat-radio-button
+                  color="primary"
+                  class="p-l-10 f-s-12"
+                  [value]="true"
+                  >External User</mat-radio-button
+                >
+                <mat-radio-button
+                  color="primary"
+                  class="p-l-10 f-s-12"
+                  [value]="false"
+                  >Internal User</mat-radio-button
+                >
+              </mat-radio-group>
+            </div>
+            <div class="col-12 row">
+              <div class="col-3 m-t-20" *ngIf="!editMode">
+                <mat-form-field class="width100" appPanWithCopyPaste>
+                  <mat-label>User Name</mat-label>
+                  <input
+                    matInput
+                    ngModel
+                    name="user_name"
+                    [(ngModel)]="username"
+                    minlength="2"
+                    maxlength="20"
+                    #uname="ngModel"
+                    (keyup)="checkUserNameAvailability(username)"
+                    required
+                  />
+                  <mat-hint *ngIf="uname.touched">
+                    <span
+                      class="error_text"
+                      *ngIf="showHint && !uname.errors"
+                      >{{ username_status }}</span
+                    >
+                    <span class="error_text" [hidden]="!uname.errors"
+                      >Min 2 characters required</span
+                    >
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+              <div
+                class="clearfix visible-lg"
+                *ngIf="editMode && enablehealthProfessionalID"
+              ></div>
+              <div class="col-3 m-t-20" *ngIf="!manipulateEMpIDAndDOJ">
+                <mat-form-field class="width100">
+                  <mat-label>Date of Joining</mat-label>
+                  <input
+                    matInput
+                    [matDatepicker]="dojPicker"
+                    name="user_doj"
+                    [(ngModel)]="patchDojOnEdit"
+                    (keydown)="preventTyping($event)"
+                    required
+                    #userDoj="ngModel"
+                  />
+                  <mat-datepicker-toggle
+                    matSuffix
+                    [for]="dojPicker"
+                  ></mat-datepicker-toggle>
+                  <mat-datepicker #dojPicker></mat-datepicker>
+                </mat-form-field>
+                <mat-error *ngIf="userDoj.errors && userDoj.touched">
+                  <span class="error_text">DOJ is required</span>
+                </mat-error>
+              </div>
+              <div class="clearfix visible-md"></div>
+              <div
+                class="col-3 m-t-20"
+                *ngIf="!editMode && !manipulateEMpIDAndDOJ"
+              >
+                <mat-form-field class="width100" appPanWithCopyPaste>
+                  <mat-label>Employee ID</mat-label>
+                  <input
+                    matInput
+                    ngModel
+                    [(ngModel)]="employee_ID"
+                    name="employeeID"
+                    minlength="2"
+                    maxlength="20"
+                    #empID="ngModel"
+                    (keyup)="checkEmployeeIdAvailability(employee_ID)"
+                    required
+                  />
+                  <mat-hint *ngIf="empID.touched">
+                    <span
+                      class="error_text"
+                      *ngIf="empIdshowHint && !empID.errors"
+                      >{{ empID_status }}</span
+                    >
+                    <span class="error_text" [hidden]="!empID.errors"
+                      >Min 2 characters required</span
+                    >
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+              <div class="col-3 m-t-20" *ngIf="!editMode">
+                <mat-form-field class="width100">
+                  <mat-label>Password</mat-label>
+                  <input
+                    type="{{ dynamictype }}"
+                    matInput
+                    ngModel
+                    [(ngModel)]="user_password"
+                    name="password"
+                    [pattern]="passwordPattern"
+                    minlength="8"
+                    maxlength="12"
+                    #pwrd="ngModel"
+                    required
+                  />
+                  <mat-icon
+                    id="eye"
+                    matSuffix
+                    class="mat-icon material-icons cursorPointer"
+                    role="img"
+                    aria-hidden="true"
+                    matTooltip="Show Password"
+                    (mousedown)="showPWD()"
+                    style="color: gray"
+                    >visibility</mat-icon
+                  >
+                  <mat-hint>
+                    <span
+                      class="error_text"
+                      *ngIf="
+                        pwrd.errors && !pwrd.hasError('pattern') && pwrd.touched
+                      "
+                      >Password is required</span
+                    >
+                    <span class="error_text" *ngIf="pwrd.hasError('pattern')"
+                      >Password is required(min:8,max:12,alphanumeric,1 special
+                      character,1 upper case)</span
+                    >
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+            </div>
+          </form>
+        </div>
+      </mat-expansion-panel>
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <h4
+              class="f-s-n-b"
+              style="margin: 15px 0px 10px 0px"
+              *ngIf="!editMode"
+            >
+              Demographic Details
+            </h4>
+            <h4
+              class="f-s-n-b"
+              style="margin: 15px 0px 10px 0px"
+              *ngIf="editMode"
+            >
+              Edit Demographic Details
+            </h4>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="col-12">
+          <form
+            #demographicsDetailsForm="ngForm"
+            autocomplete="off"
+            class="row"
+          >
+            <div class="col-3 m-t-20">
+              <mat-form-field class="width100" appMyProviderNameWithCopyPaste>
+                <mat-label>Father's Name</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="fatherName"
+                  name="father_name"
+                  minlength="2"
+                  maxlength="30"
+                  #ftName="ngModel"
+                />
+                <mat-hint *ngIf="ftName.touched">
+                  <span class="errorText" [hidden]="!ftName.errors"
+                    >Enter minimum 2 characters</span
+                  >
+                </mat-hint>
+              </mat-form-field>
+            </div>
+            <div class="col-3 m-t-20">
+              <mat-form-field class="width100" appMyProviderNameWithCopyPaste>
+                <mat-label>Mother's Name</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="motherName"
+                  name="mother_name"
+                  minlength="2"
+                  maxlength="30"
+                  #mtName="ngModel"
+                />
+                <mat-hint *ngIf="mtName.touched">
+                  <span class="errorText" [hidden]="!mtName.errors"
+                    >Enter minimum 2 characters</span
+                  >
+                </mat-hint>
+              </mat-form-field>
+            </div>
+            <div class="col-3 m-t-20">
+              <mat-form-field [style.width]="'100%'">
+                <mat-label>Community</mat-label>
+                <mat-select
+                  [style.width]="'100%'"
+                  [(ngModel)]="community"
+                  name="community_id"
+                >
+                  <mat-option
+                    *ngFor="let item of communities"
+                    [value]="item.communityID"
+                  >
+                    {{ item.communityType }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="col-3 m-t-20">
+              <mat-form-field [style.width]="'100%'">
+                <mat-label>Religion</mat-label>
+                <mat-select
+                  class="width100"
+                  [(ngModel)]="religion"
+                  name="religion_id"
+                >
+                  <mat-option
+                    *ngFor="let item of religions"
+                    [value]="item.religionID"
+                    >{{ item.religionType }}</mat-option
+                  >
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </form>
+        </div>
+        <div class="row">
+          <form #communicationDetailsForm="ngForm" autocomplete="off">
+            <div class="row">
+              <div
+                class="col-xs-12 col-sm-12 col-md-6 col-lg-6 border-right-1"
+                ngModelGroup="address"
+                #addressCtrl="ngModelGroup"
+              >
+                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                  <h4>Current Address</h4>
+                </div>
+                <div class="clearfix"></div>
+                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 m-t-20">
+                  <mat-form-field class="width100">
+                    <mat-label>Address Line 1</mat-label>
+                    <input
+                      matInput
+                      appMyAddressWithCopyPaste
+                      [(ngModel)]="currentAddressLine1"
+                      name="current_addressLine1"
+                      maxlength="50"
+                      #currentAddress1="ngModel"
+                    />
+                    <mat-hint *ngIf="currentAddress1.touched">
+                      <span class="errorText" [hidden]="!currentAddress1.errors"
+                        >Address is required</span
+                      >
+                    </mat-hint>
+                  </mat-form-field>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 m-t-20">
+                  <mat-form-field class="width100">
+                    <mat-label>Address Line 2</mat-label>
+                    <input
+                      matInput
+                      appMyAddressWithCopyPaste
+                      [(ngModel)]="currentAddressLine2"
+                      name="current_addressLine2"
+                      maxlength="50"
+                      #currentAddress2="ngModel"
+                    />
+                    <mat-hint *ngIf="currentAddress2.touched">
+                      <span class="errorText" [hidden]="!currentAddress2.errors"
+                        >Address is required</span
+                      >
+                    </mat-hint>
+                  </mat-form-field>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 m-t-10">
+                  <mat-form-field [style.width]="'100%'">
+                    <mat-label>State</mat-label>
+                    <mat-select
+                      class="width100"
+                      [(ngModel)]="currentState"
+                      (selectionChange)="getCurrentDistricts(currentState)"
+                      name="current_state"
+                      required
+                    >
+                      <mat-option
+                        *ngFor="let item of states"
+                        [value]="item.stateID"
+                      >
+                        {{ item.stateName }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 m-t-10">
+                  <mat-form-field [style.width]="'100%'">
+                    <mat-label>District</mat-label>
+                    <mat-select
+                      class="width100"
+                      [(ngModel)]="currentDistrict"
+                      name="current_district"
+                      (selectionChange)="resetcheckBox()"
+                      required
+                    >
+                      <mat-option
+                        *ngFor="let item of currentDistricts"
+                        [value]="item.districtID"
+                        >{{ item.districtName }}</mat-option
+                      >
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 m-t-20">
+                  <mat-form-field
+                    class="width100"
+                    appMyMobileNumberWithCopyPaste
+                  >
+                    <mat-label>Pincode</mat-label>
+                    <input
+                      matInput
+                      [(ngModel)]="currentPincode"
+                      name="current_pincode"
+                      minlength="6"
+                      maxlength="6"
+                      #currentPin="ngModel"
+                    />
+                    <mat-hint *ngIf="currentPin.touched">
+                      <span class="errorText" [hidden]="!currentPin.errors"
+                        >Pincode is required</span
+                      >
+                    </mat-hint>
+                  </mat-form-field>
+                </div>
+              </div>
+              <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                  <h4 class="pull-left">Permanent Address</h4>
+                  <div class="m-t-6 m-l-10">
+                    (
+                    <mat-checkbox
+                      class="m-l-5 m-r-5"
+                      color="primary"
+                      [(ngModel)]="checkAddress"
+                      [checked]="checkAddress"
+                      name="check_address"
+                      [disabled]="!addressCtrl.valid"
+                      (change)="addressCheck($event)"
+                      #myCheckBox
+                      >Same as current address</mat-checkbox
+                    >)
+                  </div>
+                </div>
+                <div class="clearfix"></div>
+                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 m-t-20">
+                  <mat-form-field class="width100">
+                    <mat-label>Address Line 1</mat-label>
+                    <input
+                      matInput
+                      appMyAddressWithCopyPaste
+                      [(ngModel)]="permanentAddressLine1"
+                      name="permanent_addressLine1"
+                      maxlength="50"
+                      #permanentAddress1="ngModel"
+                    />
+                    <mat-hint *ngIf="permanentAddress1.touched">
+                      <span
+                        class="errorText"
+                        [hidden]="!permanentAddress1.errors"
+                        >Address is required</span
+                      >
+                    </mat-hint>
+                  </mat-form-field>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 m-t-20">
+                  <mat-form-field class="width100">
+                    <mat-label>Address Line 2</mat-label>
+                    <input
+                      matInput
+                      appMyAddressWithCopyPaste
+                      [(ngModel)]="permanentAddressLine2"
+                      name="permanent_addressLine2"
+                      maxlength="50"
+                      #permanentAddress2="ngModel"
+                    />
+                    <mat-hint *ngIf="permanentAddress2.touched">
+                      <span
+                        class="errorText"
+                        [hidden]="!permanentAddress2.errors"
+                        >Address is required</span
+                      >
+                    </mat-hint>
+                  </mat-form-field>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 m-t-10">
+                  <mat-form-field [style.width]="'100%'">
+                    <mat-label>State</mat-label>
+                    <mat-select
+                      class="width100"
+                      [(ngModel)]="permanentState"
+                      (selectionChange)="getPermanentDistricts(permanentState)"
+                      name="permanent_state"
+                      required
+                    >
+                      <mat-option
+                        *ngFor="let item of states"
+                        [value]="item.stateID"
+                      >
+                        {{ item.stateName }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 m-t-10">
+                  <mat-form-field [style.width]="'100%'">
+                    <mat-label>District</mat-label>
+                    <mat-select
+                      class="width100"
+                      [(ngModel)]="permanentDistrict"
+                      name="permanent_district"
+                      required
+                    >
+                      <mat-option
+                        *ngFor="let item of permanentDistricts"
+                        [value]="item.districtID"
+                        >{{ item.districtName }}</mat-option
+                      >
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 m-t-20">
+                  <mat-form-field
+                    class="width100"
+                    appMyMobileNumberWithCopyPaste
+                  >
+                    <mat-label>Pincode</mat-label>
+                    <input
+                      matInput
+                      [(ngModel)]="permanentPincode"
+                      name="permanent_pincode"
+                      minlength="6"
+                      maxlength="6"
+                      #permanentPin="ngModel"
+                    />
+                    <mat-hint *ngIf="permanentPin.touched">
+                      <span class="errorText" [hidden]="!permanentPin.errors"
+                        >Pincode is required</span
+                      >
+                    </mat-hint>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+    <br />
+    <div class="row">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 m-b-10">
+        <button
+          mat-mini-fab
+          color="primary"
+          *ngIf="
+            !editMode &&
+            userCreationForm.valid &&
+            communicationDetailsForm.valid &&
+            !empIdshowHint &&
+            !isExistAadhar &&
+            !isExistPan &&
+            !isHPIdExist &&
+            !errorValidationMsgForHPId &&
+            !empIdshowHint &&
+            !username_dependent_flag
+          "
+          class="pull-right mat_icon_white"
+          (click)="
+            add_object(
+              userCreationForm.value,
+              demographicsDetailsForm.value,
+              communicationDetailsForm.value
+            )
+          "
+        >
+          <mat-icon
+            matSuffix
+            class="mat-icon material-icons"
+            role="img"
+            aria-hidden="true"
+            style="cursor: pointer"
+            >add</mat-icon
+          >
+        </button>
+      </div>
+    </div>
+    <br />
+    <div class="row" *ngIf="objs.data.length !== 0">
+      <div class="col-xs-12 col-sm-12" *ngIf="objs.data.length > 0">
+        <div class="table-responsive">
+          <table
+            mat-table
+            [dataSource]="objs.data"
+            class="table table-striped table-hover"
+          >
+            <ng-container matColumnDef="SNo">
+              <th mat-header-cell *matHeaderCellDef>S.No.</th>
+              <td mat-cell *matCellDef="let element; let i = index">
+                {{ i + 1 }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="UserName">
+              <th mat-header-cell *matHeaderCellDef>User Name</th>
+              <td mat-cell *matCellDef="let element">{{ element.username }}</td>
+            </ng-container>
+            <ng-container matColumnDef="EmailID">
+              <th mat-header-cell *matHeaderCellDef>Email ID</th>
+              <td mat-cell *matCellDef="let element">{{ element.emailID }}</td>
+            </ng-container>
+            <ng-container matColumnDef="EmergencyContact">
+              <th mat-header-cell *matHeaderCellDef>Emergency Contact</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.emergency_contactNo }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="action">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
+              <td mat-cell *matCellDef="let element">
+                <mat-icon
+                  class="cursorPointer"
+                  matTooltip="delete"
+                  (click)="remove_obj(objs.data.indexOf(element))"
+                  >delete</mat-icon
+                >
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumnsTable2"></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumnsTable2"
+            ></tr>
+          </table>
+          <mat-paginator
+            [hidden]="objs.data.length === 0"
+            [pageSizeOptions]="[5, 10, 25]"
+            [pageSize]="5"
+            showFirstLastButtons
+          ></mat-paginator>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-bottom: 20px">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 m-t-10 m-b-10">
+        <button
+          mat-raised-button
+          color="primary"
+          class="pull- mat_blue"
+          (click)="back()"
+        >
+          Back
+        </button>
+
+        <button
+          *ngIf="!editMode && objs.data.length > 0"
+          mat-raised-button
+          color="accent"
+          class="pull-right mat_green"
+          [disabled]="!(objs.data.length !== 0)"
+          (click)="createUser()"
+        >
+          Save
+        </button>
+        <button
+          *ngIf="editMode"
+          mat-raised-button
+          color="accent"
+          class="pull-right mat_green"
+          [disabled]="
+            userCreationForm.invalid ||
+            demographicsDetailsForm.invalid ||
+            communicationDetailsForm.invalid ||
+            isExistAadhar ||
+            isExistPan ||
+            isHPIdExist ||
+            errorValidationMsgForHPId
+          "
+          (click)="
+            update(
+              userCreationForm.value,
+              demographicsDetailsForm.value,
+              communicationDetailsForm.value
+            )
+          "
+        >
+          Update
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="employeeMasterUpload == true">
+  <app-employee-master-bulk-upload></app-employee-master-bulk-upload>
+</div>

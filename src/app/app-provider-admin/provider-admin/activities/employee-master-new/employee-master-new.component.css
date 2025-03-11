@@ -1,0 +1,56 @@
+.mat-expansion-panel-body {
+    padding:  10px 10px !important;
+}
+ul {
+  list-style: none;
+  padding: 0px;
+}
+ul li {
+  display: inline-block;
+  padding: 0 8px;
+  margin-left: 10px;
+}
+
+ul li div,
+ul li p {
+  display: inline-block;
+  vertical-align: sub;
+  margin-left: 2px;
+}
+
+ul li div {
+  height: 15px;
+  width: 15px;
+}
+.external {
+    background: #f7e200
+}
+.internal {
+    background: #0277bd
+}
+.userStatus {
+  position: relative;
+  text-align: center;
+}
+.userStatus.ext::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 1px;
+  width: 4px;
+  background: #f7e200;
+}
+.userStatus.int::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 1px;
+  width: 4px;
+  background: #0277bd;
+}
+.create-user-form{
+  height: 660px;
+  overflow-y: auto;
+}
