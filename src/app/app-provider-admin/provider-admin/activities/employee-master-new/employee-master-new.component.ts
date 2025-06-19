@@ -151,6 +151,9 @@ export class EmployeeMasterNewComponent implements OnInit {
   permanentDistricts: any = [];
   communities: any = [];
   religions: any = [];
+
+  downloadMemberExcelFile: any;
+
   // objs: any = [];
   searchTerm: any;
   selfHealthProfessionalID: any;
@@ -177,6 +180,7 @@ export class EmployeeMasterNewComponent implements OnInit {
   @ViewChild('communicationDetailsForm')
   communicationDetailsForm!: NgForm;
   disableGenerateOTP: any;
+  employeeMasterUpload = false;
 
   // md2.data: Observable<Array<item>>;
 
@@ -1578,5 +1582,9 @@ export class EmployeeMasterNewComponent implements OnInit {
     } else {
       this.enablehealthProfessionalID = false;
     }
+  }
+
+  uploadMaster() {
+    this.employeeMasterUpload = true;
   }
 }

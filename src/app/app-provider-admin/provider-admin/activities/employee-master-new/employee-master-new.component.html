@@ -121,6 +121,17 @@
             mat-raised-button
             color="primary"
             class="pull-right mat_blue"
+            (click)="uploadMaster()"
+            style="margin-left: 10px"
+          >
+            Bulk User Upload
+          </button>
+        </div>
+        <div>
+          <button
+            mat-raised-button
+            color="primary"
+            class="pull-right mat_blue ms-3"
             (click)="showForm()"
           >
             Create New User
